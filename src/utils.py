@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 import pandas as pd
 import dill
+import pickle
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score
@@ -9,7 +10,7 @@ from sklearn.metrics import r2_score
 from src.exception import CustomException
 from src.logger import logging
 
-
+# function for saving object
 def save_object(file_path, obj):
     # create a folder -> open the folder -> dump the object here
     try:
@@ -22,10 +23,9 @@ def save_object(file_path, obj):
         raise CustomException(e, sys)
     
     
-
+# function for evaluating all the models
 def evaluate_model(X_train, X_test, y_train, y_test, models_dict:dict, params:dict):
     logging.info(f'Evaluation starts')
-    
     model_list =[]
     model_score_list = []
     
@@ -36,9 +36,7 @@ def evaluate_model(X_train, X_test, y_train, y_test, models_dict:dict, params:di
         
         gs = GridSearchCV(model, param, cv=3)
         gs.fit(X_train, y_train)
-        
         model.set_params(**gs.best_params_)
-        
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         model_score = r2_score(y_test, y_pred)
@@ -56,5 +54,15 @@ def evaluate_model(X_train, X_test, y_train, y_test, models_dict:dict, params:di
     best_score = best_model_with_score[1]
     
     logging.info(f'Evaluation Report Generated')
-    
     return best_model, best_score
+
+
+# function for loading object.
+def load_object(file_path):
+    try:
+        with open(file_path, 'rb') as file_object:
+            obj = pickle.load(file_object)
+            return obj 
+    except Exception as e:
+        raise CustomException(e, sys)
+    
